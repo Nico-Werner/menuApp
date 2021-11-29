@@ -1,0 +1,25 @@
+server:
+  port: 7000
+
+auth0:
+  audience: https://menu-api.example.com
+  domain: dev-dybnq5x2.us.auth0.com
+
+spring:
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQL10Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+  datasource:
+    url: jdbc:postgresql://localhost:5432/menudb
+    username: postgres
+    password: password
+    driver-class-name: org.postgresql.Driver
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: https://${auth0.domain}/
