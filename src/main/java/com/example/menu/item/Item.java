@@ -1,11 +1,15 @@
 package com.example.menu.item;
 
+import com.example.menu.category.Category;
+import com.example.menu.itemCategory.ItemCategory;
 import org.hibernate.validator.constraints.URL;
 
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Positive;
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name="ITEMS")
@@ -36,11 +40,17 @@ public class Item {
     @Column
     private String image;
 
-    public Item(String name, Long price, String description,String image) {
+    @NotNull(message = "Category is required")
+    @OneToMany
+    @JoinColumn(name = "category_id")
+    private List<ItemCategory> categories;
+
+    public Item(String name, Long price, String description, String image) {
         this.name = name;
         this.price = price;
         this.description = description;
         this.image = image;
+        this.categories = new ArrayList<>();
     }
 
     public Item(){}
@@ -75,6 +85,10 @@ public class Item {
 
     public void setImage(String image) {
         this.image = image;
+    }
+
+    public List<ItemCategory> getCategories() {
+        return categories;
     }
 
     public Item updateWith(Item item) {
