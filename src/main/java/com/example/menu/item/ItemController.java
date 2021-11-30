@@ -1,5 +1,7 @@
 package com.example.menu.item;
 
+import com.example.menu.category.Category;
+import com.example.menu.category.CategoryService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.FieldError;
@@ -20,9 +22,11 @@ import java.util.Optional;
 public class ItemController {
 
     private final ItemService service;
+    private final CategoryService categoryService;
 
-    public ItemController(ItemService service) {
+    public ItemController(ItemService service, CategoryService categoryService) {
         this.service = service;
+        this.categoryService = categoryService;
     }
 
     @GetMapping
@@ -38,9 +42,9 @@ public class ItemController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('create:items')") // ✨ 👈 New line ✨
-    public ResponseEntity<Item> create(@Valid @RequestBody Item item) {
-        Item created = service.create(item);
+    @PreAuthorize("hasAuthority('create:items')")
+    public ResponseEntity<Item> create(@Valid @RequestBody Item item, @Valid @RequestBody Category category) {
+        Item created = service.create(item, category);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
                 .buildAndExpand(created.getId())
@@ -50,19 +54,23 @@ public class ItemController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('update:items')")
-    public ResponseEntity<Item> update(@PathVariable("id") Long id, @Valid @RequestBody Item updatedItem) {
+    public ResponseEntity<Item> update(@PathVariable("id") Long id, @Valid @RequestBody Item updatedItem, @Valid @RequestBody Category category) {
 
         Optional<Item> updated = service.update(id, updatedItem);
+        Optional<Category> updatedCategory = categoryService.findById(category.getId());
 
         return updated
                 .map(value -> ResponseEntity.ok().body(value))
                 .orElseGet(() -> {
-                    Item created = service.create(updatedItem);
-                    URI location = ServletUriComponentsBuilder.fromCurrentRequest()
-                            .path("/{id}")
-                            .buildAndExpand(created.getId())
-                            .toUri();
-                    return ResponseEntity.created(location).body(created);
+                    if(updatedCategory.isPresent()) {
+                        Item created = service.create(updatedItem, category);
+                        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                                .path("/{id}")
+                                .buildAndExpand(created.getId())
+                                .toUri();
+                        return ResponseEntity.created(location).body(created);
+                    }
+                    return ResponseEntity.notFound().build();
                 });
     }
 
