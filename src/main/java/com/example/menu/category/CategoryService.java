@@ -1,6 +1,7 @@
 package com.example.menu.category;
 
 
+import com.example.menu.item.Item;
 import org.springframework.data.map.repository.config.EnableMapRepositories;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,5 +46,10 @@ public class CategoryService {
             c.setCategoryDescription(category.getCategoryDescription());
             return categoryRepository.save(c);
         });
+    }
+
+    public List<Item> getCategoryItems(int id){
+        Optional<List<Item>> items = categoryRepository.findById(id).map(Category::getItems);
+        return items.orElse(new ArrayList<>());
     }
 }

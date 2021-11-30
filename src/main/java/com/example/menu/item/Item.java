@@ -1,7 +1,6 @@
 package com.example.menu.item;
 
 import com.example.menu.category.Category;
-import com.example.menu.itemCategory.ItemCategory;
 import org.hibernate.validator.constraints.URL;
 
 import javax.validation.constraints.NotNull;
@@ -41,9 +40,9 @@ public class Item {
     private String image;
 
     @NotNull(message = "Category is required")
-    @OneToMany
-    @JoinColumn(name = "category_id")
-    private List<ItemCategory> categories;
+    @ManyToMany
+    @JoinColumn
+    private List<Category> categories;
 
     public Item(String name, Long price, String description, String image) {
         this.name = name;
@@ -87,12 +86,18 @@ public class Item {
         this.image = image;
     }
 
-    public List<ItemCategory> getCategories() {
+    public List<Category> getCategories() {
         return categories;
     }
 
+    public void setCategories(List<Category> categories) {
+        this.categories = categories;
+    }
+
     public Item updateWith(Item item) {
-        return new Item(item.name, item.price, item.description, item.image);
+        Item updatedItem = new Item(item.name, item.price, item.description, item.image);
+        updatedItem.setCategories(item.categories);
+        return updatedItem;
     }
 
 }

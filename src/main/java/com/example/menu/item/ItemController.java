@@ -43,8 +43,8 @@ public class ItemController {
 
     @PostMapping
     @PreAuthorize("hasAuthority('create:items')")
-    public ResponseEntity<Item> create(@Valid @RequestBody Item item, @Valid @RequestBody Category category) {
-        Item created = service.create(item, category);
+    public ResponseEntity<Item> create(@Valid @RequestBody Item item) {
+        Item created = service.create(item);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
                 .buildAndExpand(created.getId())
@@ -54,23 +54,19 @@ public class ItemController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('update:items')")
-    public ResponseEntity<Item> update(@PathVariable("id") Long id, @Valid @RequestBody Item updatedItem, @Valid @RequestBody Category category) {
+    public ResponseEntity<Item> update(@PathVariable("id") Long id, @Valid @RequestBody Item updatedItem) {
 
         Optional<Item> updated = service.update(id, updatedItem);
-        Optional<Category> updatedCategory = categoryService.findById(category.getId());
 
         return updated
                 .map(value -> ResponseEntity.ok().body(value))
                 .orElseGet(() -> {
-                    if(updatedCategory.isPresent()) {
-                        Item created = service.create(updatedItem, category);
-                        URI location = ServletUriComponentsBuilder.fromCurrentRequest()
-                                .path("/{id}")
-                                .buildAndExpand(created.getId())
-                                .toUri();
-                        return ResponseEntity.created(location).body(created);
-                    }
-                    return ResponseEntity.notFound().build();
+                    Item created = service.create(updatedItem);
+                    URI location = ServletUriComponentsBuilder.fromCurrentRequest()
+                            .path("/{id}")
+                            .buildAndExpand(created.getId())
+                            .toUri();
+                    return ResponseEntity.created(location).body(created);
                 });
     }
 
@@ -79,6 +75,12 @@ public class ItemController {
     public ResponseEntity<Item> delete(@PathVariable("id") Long id) {
         service.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/categories")
+    public ResponseEntity<List<Category>> findCategories(@PathVariable("id") Long id) {
+        List<Category> categories = service.findAllCategoriesInItem(id);
+        return ResponseEntity.ok().body(categories);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

@@ -2,8 +2,6 @@ package com.example.menu.item;
 
 import com.example.menu.category.Category;
 import com.example.menu.category.CategoryRepository;
-import com.example.menu.itemCategory.ItemCategory;
-import com.example.menu.itemCategory.ItemCategoryRepository;
 import org.springframework.data.map.repository.config.EnableMapRepositories;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,12 +16,10 @@ import java.util.Optional;
 public class ItemService {
     private final InMemoryItemRepository itemRepository;
     private final CategoryRepository categoryRepository;
-    private final ItemCategoryRepository itemCategoryRepository;
 
-    public ItemService(InMemoryItemRepository repository, CategoryRepository categoryRepository, ItemCategoryRepository itemCategoryRepository) {
+    public ItemService(InMemoryItemRepository repository, CategoryRepository categoryRepository) {
         this.itemRepository = repository;
         this.categoryRepository = categoryRepository;
-        this.itemCategoryRepository = itemCategoryRepository;
         this.itemRepository.saveAll(defaultItems());
         this.categoryRepository.saveAll(defaultCategories());
     }
@@ -56,7 +52,7 @@ public class ItemService {
         return itemRepository.findById(id);
     }
 
-    public Item create(Item item, Category category) {
+    public Item create(Item item) {
         // To ensure the item ID remains unique,
         // use the current timestamp.
         Item copy = new Item(
@@ -65,11 +61,8 @@ public class ItemService {
                 item.getDescription(),
                 item.getImage()
         );
+        copy.setCategories(item.getCategories());
 
-        Optional<Category> categoryOptional = categoryRepository.findById(category.getId());
-        if (categoryOptional.isPresent()) {
-            itemCategoryRepository.save(new ItemCategory(copy, category));
-        }
         return itemRepository.save(copy);
     }
 
@@ -85,4 +78,13 @@ public class ItemService {
     public void delete(Long id) {
         itemRepository.deleteById(id);
     }
+
+    public List<Category> findAllCategoriesInItem(long id) {
+        Optional<Item> item = itemRepository.findById(id);
+        if(item.isPresent()) {
+            return item.get().getCategories();
+        }
+        return new ArrayList<>();
+    }
+
 }

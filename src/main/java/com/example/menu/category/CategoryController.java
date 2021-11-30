@@ -1,5 +1,6 @@
 package com.example.menu.category;
 
+import com.example.menu.item.Item;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.FieldError;
@@ -68,6 +69,12 @@ public class CategoryController {
         categoryService.deleteById(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/{id}/items")
+    public ResponseEntity<List<Item>> findItemsByCategoryId(@PathVariable("id") int id) {
+        return ResponseEntity.ok(categoryService.getCategoryItems(id));
+    }
+
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
